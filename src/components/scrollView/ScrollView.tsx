@@ -68,7 +68,7 @@ const BottomSheetScrollViewComponent = forwardRef(
           <AnimatedScrollView
             {...rest}
             ref={scrollableRef}
-            overScrollMode="never"
+            overScrollMode="always"
             bounces={true}
             decelerationRate={decelerationRate}
             scrollEventThrottle={1}
