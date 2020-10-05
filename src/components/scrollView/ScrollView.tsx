@@ -29,11 +29,6 @@ const AnimatedScrollView = Animated.createAnimatedComponent(
   any
 >;
 
-Animated.addWhitelistedUIProps({
-  disableIntervalMomentum: true,
-  decelerationRate: true,
-});
-
 const BottomSheetScrollViewComponent = forwardRef(
   (props: BottomSheetScrollViewProps, ref: Ref<RNScrollView>) => {
     // props
@@ -48,7 +43,11 @@ const BottomSheetScrollViewComponent = forwardRef(
       handleScrollEvent,
       handleSettingScrollable,
     } = useScrollableInternal('ScrollView');
-    const { rootTapGestureRef, decelerationRate } = useBottomSheetInternal();
+    const {
+      enabled,
+      rootTapGestureRef,
+      decelerationRate,
+    } = useBottomSheetInternal();
 
     // effects
     // @ts-ignore
@@ -63,6 +62,7 @@ const BottomSheetScrollViewComponent = forwardRef(
       >
         <NativeViewGestureHandler
           ref={nativeGestureRef}
+          enabled={enabled}
           waitFor={rootTapGestureRef}
         >
           <AnimatedScrollView

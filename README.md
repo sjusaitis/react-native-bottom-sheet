@@ -17,7 +17,10 @@ A performant interactive bottom sheet with fully configurable options 🚀
 
 1. [Features](#features)
 2. [Installation](#installation)
+   - [Version 1](#version-v1)
+   - [Version 2](#version-v2)
 3. [Usage](#usage)
+   - 🌟 [Bottom Sheet Modal](./docs/modal.md)
    - [Custom Handle](./docs/custom-handle.md)
    - [React Navigation Integration](./docs/react-navigation.md)
    - [Touchables](./docs/touchables.md)
@@ -36,6 +39,7 @@ A performant interactive bottom sheet with fully configurable options 🚀
 
 ## Features
 
+- 🌟 Modal presentation view, [Bottom Sheet Modal](./docs/modal.md).
 - Smooth interactions & snapping animations.
 - Support `FlatList`, `SectionList`, `ScrollView` & `View` scrolling interactions.
 - Support `React Navigation` Integration.
@@ -45,6 +49,12 @@ A performant interactive bottom sheet with fully configurable options 🚀
 
 ## Installation
 
+### Version v1
+
+[Link to version 1 branch](https://github.com/gorhom/react-native-bottom-sheet/tree/feature/rewrite-in-reanimated-v2)
+
+This version is written with `Reanimated v1`
+
 ```sh
 yarn add @gorhom/bottom-sheet
 # or
@@ -52,6 +62,22 @@ npm install @gorhom/bottom-sheet
 ```
 
 > ⚠️ You need to install [react-native-reanimated](https://github.com/software-mansion/react-native-reanimated) & [react-native-gesture-handler](https://github.com/software-mansion/react-native-gesture-handler) and follow their installation instructions.
+
+
+### Version v2 ( Alpha )
+
+[Link to version 2 branch](https://github.com/gorhom/react-native-bottom-sheet/tree/feature/rewrite-in-reanimated-v2)
+
+this version is written with `Reanimated v2`, although this version is still in alpha phase, yet it provides all version 1 functionalities with the huge performance boost, thanks to `Reanimated v2` ❤️
+
+
+```sh
+yarn add @gorhom/bottom-sheet@2.0.0-alpha.0
+# or
+npm install @gorhom/bottom-sheet@2.0.0-alpha.0
+```
+
+> ⚠️ You need to install [react-native-reanimated v2](https://docs.swmansion.com/react-native-reanimated/docs/next/installation) & [react-native-gesture-handler](https://github.com/software-mansion/react-native-gesture-handler) and follow their installation instructions.
 
 ## Usage
 
@@ -117,6 +143,12 @@ Top inset value helps to calculate percentage snap points values. usually comes 
 
 > `required:` NO | `type:` number | `default:` 0
 
+#### `enabled`
+
+To enable or disable user interaction with the sheet.
+
+> `required:` NO | `type:` boolean | `default:` true
+
 #### `animationDuration`
 
 Snapping animation duration.
@@ -163,7 +195,7 @@ Callback when sheet position changed to a provided point.
 
 A scrollable node or normal view.
 
-> `required:` YES | `type:` React.ReactNode[] | React.ReactNode
+> `required:` YES | `type:` () => React.ReactNode | React.ReactNode[] | React.ReactNode
 
 ## Methods
 
@@ -210,8 +242,9 @@ This library provides a pre-integrated views that utilise an internal functional
 
 ## To Do
 
-- [ ] Add tablets support.
 - [x] Add Reanimated v2 support.
+- [ ] Add tablets support.
+- [ ] Add Bounce support.
 
 ## FAQ
 

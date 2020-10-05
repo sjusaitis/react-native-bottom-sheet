@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/stack';
 import Animated, {
@@ -6,13 +6,15 @@ import Animated, {
   concat,
   Extrapolate,
 } from 'react-native-reanimated';
-import { useValue } from 'react-native-redash';
+import { ReText, useValue } from 'react-native-redash';
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import Handle from '../components/handle';
-import Button from '../components/button';
-import { ReText } from 'react-native-redash';
+import Handle from '../../components/handle';
+import Button from '../../components/button';
 
 const BasicExample = () => {
+  // state
+  const [enabled, setEnabled] = useState(true);
+
   // hooks
   const bottomSheetRef = useRef<BottomSheet>(null);
   const headerHeight = useHeaderHeight();
@@ -78,10 +80,17 @@ const BasicExample = () => {
         style={styles.buttonContainer}
         onPress={() => handleClosePress()}
       />
+
+      <Button
+        label={`${enabled ? 'Disable' : 'Enable'}`}
+        style={styles.buttonContainer}
+        onPress={() => setEnabled(state => !state)}
+      />
       <ReText text={concat('Position from bottom: ', position)} />
       <Animated.View pointerEvents="none" style={shadowOverlayStyle} />
       <BottomSheet
         ref={bottomSheetRef}
+        enabled={enabled}
         snapPoints={snapPoints}
         initialSnapIndex={1}
         handleComponent={Handle}

@@ -30,7 +30,6 @@ import {
   State,
 } from 'react-native-gesture-handler';
 import {
-  useValue,
   usePanGestureHandler,
   useTapGestureHandler,
   // ReText,
@@ -45,11 +44,12 @@ import {
   BottomSheetInternalProvider,
   BottomSheetProvider,
 } from '../../contexts';
+import { GESTURE } from '../../constants';
 import {
+  NORMAL_DECELERATION_RATE,
   DEFAULT_ANIMATION_EASING,
   DEFAULT_ANIMATION_DURATION,
-  GESTURE,
-} from '../../constants';
+} from './constants';
 import type { ScrollableRef, BottomSheetMethods } from '../../types';
 import type { BottomSheetProps } from './types';
 import { styles } from './styles';
@@ -63,7 +63,7 @@ const interpolate = interpolateV2 || interpolateV1;
 type BottomSheet = BottomSheetMethods;
 
 Animated.addWhitelistedUIProps({
-  maxDeltaY: true,
+  decelerationRate: true,
 });
 
 const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
@@ -76,6 +76,7 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
       initialSnapIndex = 0,
       snapPoints: _snapPoints,
       topInset = 0,
+      enabled = true,
       // animated nodes callback
       animatedPosition: _animatedPosition,
       animatedPositionIndex: _animatedPositionIndex,
@@ -186,12 +187,15 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
       state: tapGestureState,
       gestureHandler: tapGestureHandler,
     } = useTapGestureHandler();
-
-    const autoSnapTo = useValue<number>(-1);
     //#endregion
 
     //#region animation
-    const { position, currentPosition, currentGesture } = useTransition({
+    const {
+      position,
+      manualSnapToPoint,
+      currentPosition,
+      currentGesture,
+    } = useTransition({
       animationDuration,
       animationEasing,
       contentPanGestureState,
@@ -200,24 +204,30 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
       handlePanGestureState,
       handlePanGestureTranslationY,
       handlePanGestureVelocityY,
-      autoSnapTo,
       scrollableContentOffsetY,
       snapPoints,
       initialPosition,
     });
 
-    const animatedPositionIndex = interpolate(position, {
-      inputRange: snapPoints.slice().reverse(),
-      outputRange: snapPoints
-        .slice()
-        .map((_, index) => index)
-        .reverse(),
-      extrapolate: Extrapolate.CLAMP,
-    });
+    const animatedPositionIndex = useMemo(
+      () =>
+        interpolate(position, {
+          inputRange: snapPoints.slice().reverse(),
+          outputRange: snapPoints
+            .slice()
+            .map((_, index) => index)
+            .reverse(),
+          extrapolate: Extrapolate.CLAMP,
+        }),
+      [position, snapPoints]
+    );
     /**
      * Scrollable animated props.
      */
-    const decelerationRate = cond(greaterThan(position, 0), 0.001, 0.999);
+    const decelerationRate = useMemo(
+      () => cond(greaterThan(position, 0), 0.001, NORMAL_DECELERATION_RATE),
+      [position]
+    );
     //#endregion
 
     //#region styles
@@ -277,28 +287,25 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
             snapPoints.length - 1
           }`
         );
-        autoSnapTo.setValue(snapPoints[index]);
+        manualSnapToPoint.setValue(snapPoints[index]);
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [snapPoints]
+      [snapPoints, manualSnapToPoint]
     );
     const handleClose = useCallback(() => {
-      autoSnapTo.setValue(sheetHeight);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sheetHeight]);
+      manualSnapToPoint.setValue(sheetHeight);
+    }, [sheetHeight, manualSnapToPoint]);
     const handleExpand = useCallback(() => {
-      autoSnapTo.setValue(snapPoints[snapPoints.length - 1]);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sheetHeight]);
+      manualSnapToPoint.setValue(snapPoints[snapPoints.length - 1]);
+    }, [snapPoints, manualSnapToPoint]);
     const handleCollapse = useCallback(() => {
-      autoSnapTo.setValue(snapPoints[0]);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sheetHeight]);
+      manualSnapToPoint.setValue(snapPoints[0]);
+    }, [snapPoints, manualSnapToPoint]);
     //#endregion
 
     //#region
     const internalContextVariables = useMemo(
       () => ({
+        enabled,
         rootTapGestureRef,
         handlePanGestureState,
         handlePanGestureTranslationY,
@@ -312,7 +319,7 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
         removeScrollableRef,
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      []
+      [enabled]
     );
     const externalContextVariables = useMemo(
       () => ({
@@ -350,12 +357,12 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
             /**
              * if animation was interrupted, we ignore the change.
              */
-            if (currentPositionIndex === -1) {
+            if (currentPositionIndex === -1 && args[0] !== sheetHeight) {
               return;
             }
             currentPositionIndexRef.current = currentPositionIndex;
-            handleOnChange(currentPositionIndex);
             refreshUIElements();
+            handleOnChange(currentPositionIndex);
           }),
         ]),
       [snapPoints, refreshUIElements]
@@ -398,6 +405,7 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
             )}
             <BottomSheetProvider value={externalContextVariables}>
               <PanGestureHandler
+                enabled={enabled}
                 ref={handlePanGestureRef}
                 simultaneousHandlers={rootTapGestureRef}
                 shouldCancelWhenOutside={false}
@@ -433,7 +441,7 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
         {/* <Animated.View pointerEvents="none" style={styles.debug}>
           <ReText
             style={styles.debugText}
-            text={concat('currentGesture: ', currentGesture)}
+            text={concat('manualSnapToPoint: ', manualSnapToPoint)}
           />
           <ReText
             style={styles.debugText}
